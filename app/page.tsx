@@ -44,7 +44,8 @@ export default function Home() {
         }
         const data = await res.json();
         setProducts(data);
-        setCategories([...new Set(data.map((product: Product) => product.name))]);
+        // setCategories([...new Set(data.map((product: Product) => product.name))]);
+        setCategories(Array.from(new Set(data.map((product: Product) => product.name))));
       } catch (error: any) {
         setError(error.message || "Failed to fetch products");
       } finally {

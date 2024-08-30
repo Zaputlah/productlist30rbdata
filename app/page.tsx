@@ -35,9 +35,10 @@ export default function Home() {
       setLoading(true);
       setError(null);
       try {
-        // Mengambil data produk dari API (3 opsi disediakan)
+        // Mengambil data produk dari API (2 opsi disediakan)
+        // ini ambil data dari database mongo
         // const res = await fetch("/api/mongoproducts");
-        // const res = await fetch("/api/mongoproductsData10");
+        // ini ambil data dari product.json ini untuk saya publish di vercel
         const res = await fetch("/api/products10data");
         if (!res.ok) {
           throw new Error("Network response was not ok");

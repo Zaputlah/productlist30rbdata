@@ -1,83 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import styles from "../page.module.css";
 
 interface FilterProps {
-  categories: string[]; // Daftar kategori produk yang tersedia
-  selectedCategories: string[]; // Kategori yang saat ini dipilih untuk filter
-  className?: string; // Kelas CSS opsional untuk styling tambahan
-  onFilterChange: (selectedCategories: string[], minPrice: string, maxPrice: string) => void; // Fungsi callback yang dipanggil saat filter diubah
+  categories: string[];
+  selectedCategories: string[];
+  onFilterChange: (selectedCategories: string[], minPrice: string, maxPrice: string) => void;
 }
 
-const Filter: React.FC<FilterProps> = ({ categories, selectedCategories, onFilterChange, className }) => {
-  const [selectedBrands, setSelectedBrands] = useState<string[]>(selectedCategories); // Status kategori yang dipilih
-  const [minPrice, setMinPrice] = useState<string>('0'); // Status harga minimum filter
-  const [maxPrice, setMaxPrice] = useState<string>('100'); // Status harga maksimum filter
+const Filter = ({ categories, selectedCategories, onFilterChange }: FilterProps) => {
+  const [selectedBrands, setSelectedBrands] = useState(selectedCategories);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
-  const handleBrandChange = (brand: string) => {
-    if (selectedBrands.includes(brand)) {
-      setSelectedBrands(selectedBrands.filter((b) => b !== brand)); // Menghapus kategori jika sudah ada
-    } else {
-      setSelectedBrands([...selectedBrands, brand]); // Menambahkan kategori jika belum ada
-    }
-  };
+  useEffect(() => setSelectedBrands(selectedCategories), [selectedCategories]);
 
-  const handleApplyFilter = () => {
-    onFilterChange(selectedBrands, minPrice, maxPrice); // Menerapkan filter dan memanggil callback
-  };
-
-  const formatPrice = (value: string) => {
-    // Format harga untuk memasukkan titik sebagai pemisah ribuan
-    const [integerPart, decimalPart] = value.split('.');
-    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return decimalPart ? `${formattedIntegerPart}.${decimalPart}` : formattedIntegerPart;
-  };
-
-  const parsePrice = (value: string) => {
-    // Mengurai harga menjadi angka
-    return parseFloat(value.replace(/\./g, '').replace(',', '.'));
-  };
+  const toggleBrand = (brand: string) => setSelectedBrands((current) => current.includes(brand) ? current.filter((item) => item !== brand) : [...current, brand]);
+  const reset = () => { setSelectedBrands([]); setMinPrice(""); setMaxPrice(""); onFilterChange([], "", ""); };
+  const formatInput = (value: string) => value.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
   return (
-    <div className={className}>
-      <div className="brand">
-        <h4>Brand</h4>
-        {categories.map((name) => (
-          <div key={name}>
-            <label>
-              <input
-                type="checkbox"
-                value={name}
-                checked={selectedBrands.includes(name)} // Menandai checkbox jika kategori terpilih
-                onChange={() => handleBrandChange(name)} // Menangani perubahan checkbox
-              />
-              {name} {/* Menampilkan nama kategori */}
+    <div className={styles.filterContent}>
+      <div className={styles.filterHeading}>
+        <div><span>☷</span><h3>Filter produk</h3></div>
+        <button type="button" onClick={reset}>Reset</button>
+      </div>
+      <div className={styles.filterGroup}>
+        <h4>Merek</h4>
+        <div className={styles.brandOptions}>
+          {categories.map((name) => (
+            <label key={name} className={styles.checkRow}>
+              <input type="checkbox" checked={selectedBrands.includes(name)} onChange={() => toggleBrand(name)} />
+              <span className={styles.customCheck}>✓</span><span>{name}</span>
             </label>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-
-      <div>
-        <h4>Harga</h4>
-        <label>
-          Min:
-          <input
-            type="text"
-            value={formatPrice(minPrice)} // Menampilkan harga minimum yang diformat
-            onChange={(e) => setMinPrice(parsePrice(e.target.value).toString())} // Mengubah harga minimum
-          />
-        </label>
-        <label>
-          Max:
-          <input
-            type="text"
-            value={formatPrice(maxPrice)} // Menampilkan harga maksimum yang diformat
-            onChange={(e) => setMaxPrice(parsePrice(e.target.value).toString())} // Mengubah harga maksimum
-          />
-        </label>
+      <div className={styles.filterGroup}>
+        <h4>Rentang harga</h4>
+        <div className={styles.priceInputs}>
+          <label><span>Minimum</span><div><b>Rp</b><input inputMode="numeric" placeholder="0" value={minPrice} onChange={(e) => setMinPrice(formatInput(e.target.value))} /></div></label>
+          <i>—</i>
+          <label><span>Maksimum</span><div><b>Rp</b><input inputMode="numeric" placeholder="100.000" value={maxPrice} onChange={(e) => setMaxPrice(formatInput(e.target.value))} /></div></label>
+        </div>
       </div>
-
-      <button onClick={handleApplyFilter}>Terapkan</button> {/* Tombol untuk menerapkan filter */}
+      <button className={styles.applyButton} type="button" onClick={() => onFilterChange(selectedBrands, minPrice, maxPrice)}>Terapkan filter <span>→</span></button>
     </div>
   );
 };
